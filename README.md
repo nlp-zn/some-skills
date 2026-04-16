@@ -1,95 +1,94 @@
 # Some Skills
 
-> A collection of AI skills for Claude Code
+> A growing collection of reusable AI skills, organized for long-term expansion.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Skill Count](https://img.shields.io/badge/Skills-1-blue.svg)](https://github.com/zhangnan27/some-skills)
+[![Skills](https://img.shields.io/badge/Skills-2-blue.svg)](https://github.com/nlp-zn/some-skills)
 
-A curated collection of reusable AI skills for Claude Code. Each skill is designed to solve specific business problems and improve productivity.
+This repository stores production-ready skills under `skills/`, plus the shared conventions needed to keep new additions consistent as the collection grows.
 
-## 🚀 Skills
+## What Lives Here
 
-### [pr-reminder](./skills/pr-reminder/) - PR Status Monitor & Reminder
+Current skills:
 
-An intelligent GitHub PR monitoring tool that generates team-chat-friendly status reports with quality scoring.
+| Skill | Purpose | Notes |
+| --- | --- | --- |
+| [`pr-reminder`](./skills/pr-reminder/) | GitHub PR monitoring and team-chat-friendly status reports | Uses GitHub data and local state snapshots |
+| [`ernie-image`](./skills/ernie-image/) | ERNIE-Image / ERNIE-Image-Turbo text-to-image generation | Uses AI Studio access token and optional local config |
 
-**Features:**
-- 📊 **Quality Scoring**: Automatically scores PRs (0-100) based on CI, code size, focus, reviews, documentation, and timeliness
-- 🔄 **Change Detection**: Tracks PR state changes across sessions
-- 💬 **Team-Chat Format**: Generates beautiful, emoji-rich reports perfect for Slack/WeChat
-- ✨ **Business Value Analysis**: Extracts skill information and highlights business/user value
-- 🔧 **Actionable Insights**: Provides improvement suggestions from user perspective
-- ⚡ **Smart Sorting**: Ranks PRs by quality score to prioritize review
+## Repository Conventions
 
-**Use Cases:**
-- Daily PR status reports in team chats
-- Reminding contributors about CI failures or review feedback
-- Alerting admins to merge approved PRs
-- Tracking PR progress over time
+All installable skills live under `skills/<skill-name>/` and must contain a `SKILL.md`.
 
-**Quick Start:**
-```bash
-cd skills/pr-reminder
-./install.sh
+Recommended layout:
+
+```text
+some-skills/
+├── skills/
+│   ├── <skill-name>/
+│   │   ├── SKILL.md            # Required
+│   │   ├── scripts/            # Optional helpers
+│   │   ├── references/         # Optional supporting docs
+│   │   ├── evals/              # Optional eval definitions
+│   │   └── assets/             # Optional templates or examples
+│   └── <skill-name>-workspace/ # Optional local eval outputs, gitignored
+├── README.md
+├── CONTRIBUTING.md
+├── install.sh
+└── .claude/INSTALL.md
 ```
 
-Then in Claude Code:
-```
-请帮我生成今天的 PR 状态报告
-```
+Important repo-level rules:
 
-## 📦 Installation
+- `SKILL.md` is the only required file for a skill directory.
+- Eval and benchmark outputs should stay in a sibling `*-workspace/` directory and must not be committed.
+- Secrets must never be stored in the repository. Prefer environment variables or user-level config under `~/.config/...`.
+- Skill-specific dependencies belong in the skill docs, not in a repo-wide hard requirement list.
 
-See [`.claude/INSTALL.md`](./.claude/INSTALL.md) for detailed installation instructions.
+## Installation
 
-### Quick Install
-
-Each skill can be installed independently using the provided install script:
-
-```bash
-cd skills/<skill-name>
-./install.sh
-```
-
-Or manually create a symlink:
+Use the root installer to install any skill that contains a `SKILL.md`:
 
 ```bash
-ln -s $(pwd)/skills/<skill-name> ~/.claude/skills/<skill-name>
+./install.sh pr-reminder
+./install.sh ernie-image
 ```
 
-## 🔧 Requirements
+This creates a symlink in `~/.claude/skills/`.
 
-- Claude Code
-- GitHub CLI (`gh`) - for PR monitoring skill
-- Python 3.7+
+Manual install also works:
 
-## 📖 Documentation
+```bash
+ln -s "$(pwd)/skills/<skill-name>" ~/.claude/skills/<skill-name>
+```
 
-Each skill includes comprehensive documentation:
-- `README.md` - Quick start guide
-- `SKILL.md` - Detailed skill documentation
-- `QUICKSTART.md` - 5-minute setup guide
-- `SUMMARY.md` - Project summary
-- `references/` - Technical references
+See [`.claude/INSTALL.md`](./.claude/INSTALL.md) for more detail.
 
-## 🤝 Contributing
+## Requirements
 
-Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
+Shared baseline:
 
-## 📝 License
+- Claude Code or a compatible skill runner
+- `bash`
+- `python3` for skills that ship helper scripts
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+Skill-specific dependencies vary:
 
-## 🌟 Acknowledgments
+- `pr-reminder` depends on GitHub access and its helper scripts
+- `ernie-image` depends on an AI Studio access token
 
-- Inspired by [obra/superpowers](https://github.com/obra/superpowers)
-- Built with [Claude Code](https://claude.ai/code)
-- Powered by [Anthropic Claude](https://www.anthropic.com)
+## Adding More Skills
 
-## 📮 Contact
+When a new skill lands, the repo should stay coherent at three levels:
 
-Zhangnan27 - [@zhangnan27](https://github.com/zhangnan27)
+1. Add the skill under `skills/<skill-name>/`.
+2. Update this README so the skill catalog stays discoverable.
+3. Follow [CONTRIBUTING.md](./CONTRIBUTING.md) for shared structure, secret handling, and eval workspace rules.
 
----
+## Contributing
 
-Made with ❤️ by Zhangnan27
+Contributions are welcome. See [CONTRIBUTING.md](./CONTRIBUTING.md).
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](./LICENSE).

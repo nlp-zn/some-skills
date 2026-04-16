@@ -28,31 +28,30 @@ cd some-skills
 ### 3. Install Dependencies
 
 ```bash
-# Ensure you have Python 3.7+
+# Ensure you have Python 3
 python3 --version
 
-# Install GitHub CLI (required for pr-reminder)
-brew install gh
-gh auth login
+# Install extra dependencies only for the skill you are working on
 ```
 
 ## 📁 Project Structure
 
 ```
 some-skills/
-├── pr-reminder/              # PR monitoring skill
-│   ├── SKILL.md             # Main skill file
-│   ├── README.md            # User documentation
-│   ├── QUICKSTART.md        # Quick start guide
-│   ├── SUMMARY.md           # Project summary
-│   ├── scripts/             # Python scripts
-│   ├── references/          # Technical references
-│   ├── assets/              # Resource files
-│   ├── install.sh           # Installation script
-│   └── uninstall.sh         # Uninstallation script
+├── skills/
+│   ├── <skill-name>/
+│   │   ├── SKILL.md         # Required: main skill definition
+│   │   ├── scripts/         # Optional helper scripts
+│   │   ├── references/      # Optional supporting docs
+│   │   ├── evals/           # Optional eval definitions
+│   │   └── assets/          # Optional templates/examples
+│   └── <skill-name>-workspace/
+│       └── ...              # Local eval outputs, screenshots, benchmarks
 ├── LICENSE
 ├── README.md
-└── CONTRIBUTING.md
+├── CONTRIBUTING.md
+├── install.sh
+└── .claude/INSTALL.md
 ```
 
 ## 🔧 Development Workflow
@@ -61,51 +60,51 @@ some-skills/
 
 1. **Create a new directory** for your skill:
    ```bash
-   mkdir your-skill-name
-   cd your-skill-name
+   mkdir -p skills/your-skill-name
+   cd skills/your-skill-name
    ```
 
-2. **Create required files**:
-   - `SKILL.md` - Main skill definition with frontmatter
-   - `README.md` - User-facing documentation
-   - `install.sh` - Installation script (make executable)
-   - `uninstall.sh` - Uninstallation script (make executable)
+2. **Create the required file**:
+   - `SKILL.md` - Main skill definition and usage guidance
 
-3. **Follow the skill structure**:
+3. **Add optional directories only if they help**:
    ```
    your-skill/
-   ├── SKILL.md              # Required: skill metadata and instructions
-   ├── README.md             # Required: user documentation
-   ├── scripts/              # Optional: executable scripts
-   ├── references/           # Optional: reference docs
-   └── assets/               # Optional: templates, configs
+   ├── SKILL.md              # Required
+   ├── scripts/              # Optional
+   ├── references/           # Optional
+   ├── evals/                # Optional
+   └── assets/               # Optional
    ```
 
-4. **SKILL.md format**:
-   ```yaml
-   ---
-   name: your-skill-name
-   description: A clear, concise description of when to use this skill
-   compatibility: Any required tools or dependencies
-   ---
+4. **Document skill-specific requirements inside the skill**, not only in repo docs:
+   - auth or token setup
+   - expected env vars or config locations
+   - helper scripts and examples
+   - model or provider caveats
 
-   # Your Skill Name
-
-   Detailed instructions for using this skill...
+5. **Keep local eval outputs outside the skill directory**:
+   ```bash
+   mkdir -p skills/your-skill-workspace
    ```
+   Use the sibling workspace for screenshots, generated media, benchmark results, and experiment notes. These directories are gitignored on purpose.
+
+6. **Never commit secrets**:
+   - use environment variables
+   - or use user-level config such as `~/.config/<tool-or-skill>/...`
+   - if local `.env` files are needed for testing, keep them ignored
 
 ### Making Changes
 
 1. **Create a branch** for your work:
    ```bash
-   git checkout -b feature/your-feature-name
+   git checkout -b codex/your-feature-name
    ```
 
 2. **Make your changes** and test thoroughly:
    ```bash
-   # Test your skill locally
-   cd your-skill
-   ./install.sh
+   # Install the skill from the repo root
+   ./install.sh your-skill-name
    ```
 
 3. **Commit your changes**:
@@ -116,7 +115,7 @@ some-skills/
 
 4. **Push to your fork**:
    ```bash
-   git push origin feature/your-feature-name
+   git push origin codex/your-feature-name
    ```
 
 5. **Create a Pull Request** on GitHub.
@@ -164,6 +163,7 @@ feat: add pr-reminder skill for GitHub PR monitoring
 - Provide context for instructions
 - Include examples where helpful
 - Use progressive disclosure (simple first, detailed later)
+- Default to reusable patterns that will still make sense after more skills are added
 
 ## 🧪 Testing
 
@@ -171,28 +171,29 @@ Before submitting a PR:
 
 1. **Test installation**:
    ```bash
-   cd your-skill
-   ./install.sh
+   ./install.sh your-skill-name
    ```
 
 2. **Test the skill** in Claude Code:
    - Trigger the skill with appropriate prompts
    - Verify expected behavior
    - Test edge cases
+   - If the skill integrates with an external provider, verify the auth onboarding path too
 
-3. **Test uninstallation**:
-   ```bash
-   ./uninstall.sh
-   ```
+3. **Check repo-level docs if behavior changed**:
+   - update `README.md` if a new skill was added
+   - update `.claude/INSTALL.md` if install or setup flow changed
+   - update `CHANGELOG.md` when the change is user-visible
 
 ## 📖 Documentation
 
 Good documentation is essential:
 
-- **README.md**: Clear description, features, installation, usage
-- **SKILL.md**: Proper frontmatter, detailed instructions
+- **README.md**: Repo catalog and shared conventions
+- **SKILL.md**: Skill entry point and usage guidance
 - **Comments**: Explain complex logic in code
 - **Examples**: Provide real-world usage examples
+- **references/**: Keep supporting material close to the skill when it improves outcomes
 
 ## 🤝 Code Review Process
 
@@ -207,6 +208,7 @@ Good documentation is essential:
 - Be specific about when to use the skill
 - Include both what it does and when to trigger it
 - Use "pushy" descriptions to improve triggering accuracy
+- Prefer descriptions that still make sense when the repo contains many unrelated skills
 
 ### User-Facing Text
 - Use clear, friendly language
