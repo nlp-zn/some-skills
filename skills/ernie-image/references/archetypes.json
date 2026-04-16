@@ -1,0 +1,264 @@
+{
+  "version": 1,
+  "defaults": {
+    "flow": [
+      "classify",
+      "expand",
+      "preserve_layout",
+      "render"
+    ],
+    "use_pe": "enable for short, vague, or natural-language prompts; disable only when the user explicitly wants literal wording",
+    "ratio": "choose ratio before size; map to the closest pixel fallback only if needed",
+    "seed_mode": {
+      "fixed": "reproducibility and exact A/B",
+      "incremental": "small sweeps across closely related variants",
+      "random": "fresh composition search"
+    }
+  },
+  "archetypes": [
+    {
+      "id": "cover_poster",
+      "aliases": [
+        "海报",
+        "封面",
+        "宣传图",
+        "poster",
+        "cover",
+        "article cover"
+      ],
+      "best_for": [
+        "公众号封面",
+        "专栏头图",
+        "产品发布海报"
+      ],
+      "default_ratio": [
+        "16:9",
+        "9:16"
+      ],
+      "default_preset": [
+        "article",
+        "poster"
+      ],
+      "prompt_blocks": [
+        "用途",
+        "场景",
+        "主体",
+        "构图",
+        "留白",
+        "标题区",
+        "slogan区",
+        "气质",
+        "干净程度"
+      ],
+      "layout_rules": [
+        "one clear subject",
+        "one title zone",
+        "one slogan zone",
+        "keep the background uncluttered"
+      ],
+      "prompt_template": "{use_case}，{ratio}，中心是{subject}，{title_zone}，{slogan_zone}，整体{mood}，适合{delivery_context}，不要拥挤。",
+      "seed_hint": "fix the seed after the composition is close"
+    },
+    {
+      "id": "infographic",
+      "aliases": [
+        "信息图",
+        "图解",
+        "讲解图",
+        "diagram",
+        "infographic",
+        "chart"
+      ],
+      "best_for": [
+        "教程图",
+        "对比图",
+        "知识图谱",
+        "课程配图"
+      ],
+      "default_ratio": [
+        "4:3",
+        "16:9"
+      ],
+      "default_preset": [
+        "article",
+        "square"
+      ],
+      "prompt_blocks": [
+        "主题",
+        "中文输出",
+        "模块",
+        "步骤",
+        "标题",
+        "说明区",
+        "对比维度",
+        "留白"
+      ],
+      "layout_rules": [
+        "make modules explicit",
+        "reserve a title area",
+        "reserve notes or callout areas",
+        "keep labels short and readable"
+      ],
+      "prompt_template": "{topic}信息图，{ratio}，中文输出，包含{modules}，顶部留{title_zone}，底部留{notes_zone}，结构清晰，适合{delivery_context}。",
+      "seed_hint": "fix the seed when comparing module layout variants"
+    },
+    {
+      "id": "engineering_markup",
+      "aliases": [
+        "工程标注",
+        "拆解图",
+        "结构示意",
+        "exploded view",
+        "engineering markup"
+      ],
+      "best_for": [
+        "产品拆解",
+        "结构说明",
+        "工程说明图",
+        "硬核技术风画面"
+      ],
+      "default_ratio": [
+        "4:3",
+        "16:9"
+      ],
+      "default_preset": [
+        "article",
+        "wallpaper"
+      ],
+      "prompt_blocks": [
+        "主体",
+        "结构",
+        "标注",
+        "尺寸",
+        "材质",
+        "箭头",
+        "剖面",
+        "背景克制"
+      ],
+      "layout_rules": [
+        "keep the object crisp and visible",
+        "annotations are a second layer, not the whole image",
+        "dark technical marks often work well"
+      ],
+      "prompt_template": "硬核{object}拆解图，{ratio}，主体清晰完整，叠加{annotations}，带{arrows}和{cutaway}，背景克制，高可读性，适合{delivery_context}。",
+      "seed_hint": "incremental sweeps work well for annotation density"
+    },
+    {
+      "id": "viral_thumbnail",
+      "aliases": [
+        "缩略图",
+        "thumbnail",
+        "clickbait",
+        "高点击率",
+        "强标题图"
+      ],
+      "best_for": [
+        "视频封面",
+        "社媒主图",
+        "高点击率宣传图"
+      ],
+      "default_ratio": [
+        "16:9"
+      ],
+      "default_preset": [
+        "article",
+        "wallpaper"
+      ],
+      "prompt_blocks": [
+        "人物表情",
+        "左右分区",
+        "主体",
+        "箭头",
+        "超短标题",
+        "高饱和高对比",
+        "背景模糊"
+      ],
+      "layout_rules": [
+        "keep the headline very short",
+        "separate person and object into different zones",
+        "push contrast on purpose"
+      ],
+      "prompt_template": "{scene}缩略图，{ratio}，{expression}，左/右分区，{target_object}在另一侧，加入{arrow}和{headline}，高对比，高饱和，背景模糊，适合{delivery_context}。",
+      "seed_hint": "use fixed seed when testing headline placement"
+    },
+    {
+      "id": "historical_knowledge",
+      "aliases": [
+        "历史图谱",
+        "知识图谱",
+        "时间轴",
+        "history card",
+        "knowledge card"
+      ],
+      "best_for": [
+        "朝代服饰",
+        "制度演变",
+        "时间轴图谱",
+        "文化研究配图"
+      ],
+      "default_ratio": [
+        "4:3",
+        "16:9"
+      ],
+      "default_preset": [
+        "article",
+        "square"
+      ],
+      "prompt_blocks": [
+        "主题",
+        "图解",
+        "顺序",
+        "注释",
+        "速查表",
+        "时间轴",
+        "中文标题"
+      ],
+      "layout_rules": [
+        "order the subjects explicitly",
+        "name the comparison dimensions",
+        "treat it as a teaching diagram"
+      ],
+      "prompt_template": "{theme}知识图谱，{ratio}，主体按顺序排列，每个主体有独立{annotations}，顶部放{quick_ref}，底部放{timeline}，中文标题清晰，适合{delivery_context}。",
+      "seed_hint": "fixed seed is useful when comparing layout density"
+    },
+    {
+      "id": "character_ip",
+      "aliases": [
+        "角色",
+        "IP",
+        "吉祥物",
+        "mascot",
+        "character"
+      ],
+      "best_for": [
+        "角色设定",
+        "IP 视觉",
+        "形象草案"
+      ],
+      "default_ratio": [
+        "1:1",
+        "9:16"
+      ],
+      "default_preset": [
+        "square",
+        "avatar"
+      ],
+      "prompt_blocks": [
+        "身份块",
+        "轮廓",
+        "服装",
+        "表情",
+        "姿态",
+        "背景简洁",
+        "渲染风格"
+      ],
+      "layout_rules": [
+        "keep an identity block stable",
+        "only swap scene or pose details",
+        "background should stay simple"
+      ],
+      "prompt_template": "{identity_block}，{ratio}，{outfit}，{expression}，{pose}，背景{background}，{rendering_style}，适合{delivery_context}。",
+      "seed_hint": "lock the seed once the identity block is right"
+    }
+  ]
+}

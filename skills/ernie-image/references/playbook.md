@@ -13,6 +13,8 @@ Use ERNIE-Image and ERNIE-Image-Turbo for outputs that need to be publishable, e
 
 The official materials emphasize that ERNIE Image is not only for "pretty one-off images", but for content that can be shipped, revised, and reused.
 
+For prompt expansion, keep the machine-friendly archetype data in [archetypes.json](./archetypes.json). This playbook explains how to use it; the JSON file carries the repeatable skeletons.
+
 The AI Studio product framing is also useful:
 
 - `Flagship`: richer detail, better for high-quality final work
@@ -36,7 +38,7 @@ Use this when direction is still fuzzy:
 - `n=4`
 - short but specific prompt
 - `use_pe=true`
-- square or obvious destination size
+- choose `ratio` first, then map to the closest size
 
 Goal: find the right direction cheaply.
 
@@ -63,141 +65,33 @@ When the concept is approved:
 
 Goal: stable output and local files for downstream use.
 
-## Simple Prompt Rescue
+## Prompt Rescue and Archetypes
 
-Many users will only say something like:
+Many users will only say something like `来一张科技感海报`. Do not pass that through untouched.
 
-`来一张科技感海报`
-
-Do not pass that through untouched. Expand it into a usable production prompt.
-
-### Expansion template
-
-Turn a minimal ask into:
+Use the machine-friendly skeleton in [archetypes.json](./archetypes.json) as the canonical reference, then expand with:
 
 `用途 + 场景 + 主体 + 构图 + 留白 + 文字区 + 风格气质 + 干净程度`
 
-Example:
+If the original ask is short or vague, keep `use_pe=true` by default. That matches AI Studio's `Smart Optimize` behavior and usually produces a better first draft.
 
-Minimal ask:
+Examples:
 
-`来一张科技感海报`
+- `来一张科技感海报`
+  Expand to a poster brief with a clear subject, one title zone, one slogan zone, and explicit whitespace.
+- `帮我做一个讲 AI 工作流的图`
+  Expand to an infographic brief with modules, labels, and a Chinese title.
+- `给我一个硬核一点的产品图`
+  Expand to an engineering markup or exploded-view brief.
 
-Expanded:
+The core idea is simple:
 
-`科技新品发布海报，竖版，中心是未来感设备主体，主色偏银灰与电蓝，上方预留标题区域，下方预留中文 slogan 区，整体干净克制，适合产品发布宣传图，不要拥挤。`
+1. classify the request
+2. expand the prompt
+3. preserve the layout brief
+4. only then decide whether to sweep `style`, `seed`, or `negative_prompt`
 
-If the original ask is short or vague, keep `use_pe=true` by default. This mirrors AI Studio's `Smart Optimize` behavior.
-
-## Prompt Formulas
-
-### Covers
-
-Use:
-
-`topic + scene + main subject + composition + blank area + title text + mood + cleanliness`
-
-Example:
-
-`未来感城市夜景，蓝紫色主色，横版科技专栏封面，左侧保留大标题留白，右下角一个友好的机器人IP，画面干净有层次，适合作为AI栏目头图，带简短中文标题“AI工作流”，不要拥挤。`
-
-### Posters
-
-Use:
-
-`campaign theme + visual metaphor + orientation + focal point + text placement + contrast + delivery context`
-
-Example:
-
-`极简科技新品海报，竖版，中心是银灰色智能设备主体，上方留主标题区域，下方留 slogan 区域，背景克制，高对比，适合作为产品发布海报。`
-
-### Character / IP
-
-Use:
-
-`character identity + silhouette + outfit + expression + pose + background simplicity + rendering style`
-
-Keep a stable "identity block" and only swap scene / pose details across runs.
-
-## Gallery-Derived Archetypes
-
-The public AI Studio gallery is useful because it shows what people actually publish, not just lab demos. A few repeatable patterns show up over and over:
-
-### A. Chinese infographic
-
-Pattern:
-
-`topic + Chinese output + handwriting / typography choice + infographic framing + clear ratio + realistic finish`
-
-What matters:
-
-- say that the image is an infographic, chart, or diagram
-- explicitly request Chinese output when text matters
-- reserve areas for title, table, notes, or callouts
-
-This is stronger than saying only "make it educational."
-
-### B. Engineering markup
-
-Pattern:
-
-`choose object + keep object crisp + overlay engineering annotations + labels + dimensions + materials + arrows + cutaway / section hints`
-
-What matters:
-
-- the object stays clearly visible
-- annotations are a second layer, not the whole image
-- dark handwritten technical marks often create the desired look
-
-### C. Historical knowledge card
-
-Pattern:
-
-`historical theme + ordered figures / items + per-item annotations + top quick-reference block + bottom knowledge block or timeline + Chinese title`
-
-What matters:
-
-- order the subjects explicitly
-- name the comparison dimensions
-- treat the image as a teaching diagram, not a mood board
-
-### D. Viral thumbnail
-
-Pattern:
-
-`excited face + left/right split + target object on the opposite side + bold arrow + giant short headline + saturated, high-contrast background`
-
-What matters:
-
-- keep the headline very short
-- place the person and object in separate zones
-- exaggerate expression and contrast on purpose
-
-### E. Style homage poster
-
-Pattern:
-
-`franchise / theme + core cast or subject + background world + named art direction + poster framing + ratio`
-
-What matters:
-
-- define the subject hierarchy first
-- named style references work better when composition is already specified
-- this is best for poster or cover tasks, not dense information graphics
-
-## Prompt As Layout Spec
-
-One of the clearest lessons from the gallery is that the prompt often acts like a layout brief.
-
-Many strong examples do not just say what to draw. They also say:
-
-- what language the text should use
-- where the title goes
-- what kind of annotation blocks to include
-- what comparison table or timeline to include
-- what side should stay blank
-
-When the task is structured, write the prompt as if you are briefing a designer, not only describing an illustration.
+When the task is structured, write the prompt like a designer brief, not like a caption.
 
 ## What `做同款` Seems To Preserve
 
@@ -267,25 +161,30 @@ AI Studio labels this as `Style Seed`. Treat it as a creative lock:
 - same seed + same prompt -> stable reproduction
 - same seed + one prompt change -> cleaner A/B comparison
 - new seed -> fresh composition search
+- `fixed` is the default choice when you want reproducibility
+- `incremental` is the right choice when you want a controlled sweep
+- `random` is the right choice when you want to search for a new composition
 
 ## Parameter Strategy
 
 ### Core
 
-- `size`: choose for destination first
+- `ratio`: choose for destination first when the runtime supports it
+- `size`: choose the closest pixel fallback when `ratio` is unavailable
 - `n`: use `2-4` for exploration, `1-2` for refinement
 - `response_format=url`: preview quickly
 - `response_format=b64_json`: final save
 
 ### Creative control
 
-- `use_pe=true`: good for short, natural-language prompts
+- `use_pe=true`: good for short, natural-language prompts; default it on unless the user wants literal wording
 - `negative_prompt`: useful when outputs repeat known defects
 - `style`: useful for fast visual sweeps such as `Photographic`, `Anime`, `Cinematic`, `Digital Art`
 
 ### Precision control
 
 - `seed`: lock a direction
+- `seed_mode`: `fixed`, `incremental`, or `random` depending on whether you want reproducibility, a sweep, or fresh search
 - `steps` / `num_inference_steps`: increase only after the concept is already right
 - `cfg_scale` / `guidance_scale`: raise when the model drifts away from the prompt; lower when it feels too rigid
 - `sampler_index`: advanced users only; use to explore rendering behavior after the concept is stable
@@ -295,6 +194,7 @@ AI Studio labels this as `Style Seed`. Treat it as a creative lock:
 ### Mode A: Poster sprint
 
 - `preset=poster`
+- `ratio=9:16` or `16:9`, depending on the destination
 - `n=4`
 - `response_format=url`
 - prompt includes text area + focal product
@@ -302,6 +202,7 @@ AI Studio labels this as `Style Seed`. Treat it as a creative lock:
 ### Mode B: Cover lock
 
 - `preset=article`
+- `ratio=16:9`
 - `seed` fixed
 - `n=2`
 - text short and explicit
@@ -309,6 +210,7 @@ AI Studio labels this as `Style Seed`. Treat it as a creative lock:
 ### Mode C: Wallpaper polish
 
 - `preset=wallpaper`
+- `ratio=16:9` or `9:16`
 - no text
 - strong atmosphere + clean subject hierarchy
 - optional style sweep across 2-3 runs
