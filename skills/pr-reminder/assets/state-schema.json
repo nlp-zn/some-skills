@@ -1,0 +1,104 @@
+{
+  "_comment": "This is an example of the .pr-reminder-state.json file structure. The actual file is auto-created and managed by the skill.",
+
+  "repo_last_check": {
+    "AgenticAIPlan/AgenticAISkills": "2025-04-16T14:30:00Z",
+    "other/repo": "2025-04-16T10:15:00Z"
+  },
+
+  "pr_history": {
+    "AgenticAIPlan/AgenticAISkills": {
+      "42": {
+        "number": 42,
+        "title": "实现用户认证功能",
+        "snapshot": {
+          "number": 42,
+          "title": "实现用户认证功能",
+          "author": "zhangnan27",
+          "review_decision": "REVIEW_REQUIRED",
+          "ci_status": "SUCCESS",
+          "approvers": ["reviewer1"],
+          "reviewers_requested": ["reviewer1", "reviewer2"],
+          "labels": ["enhancement", "high-priority"],
+          "created_at": "2025-04-16T12:00:00Z",
+          "updated_at": "2025-04-16T14:00:00Z",
+          "additions": 450,
+          "deletions": 120,
+          "changed_files": 5,
+          "is_draft": false
+        },
+        "first_seen": "2025-04-16T12:00:00Z",
+        "last_shown": "2025-04-16T14:30:00Z",
+        "times_shown": 3,
+        "last_changes": {
+          "ci_changed": "2025-04-16T14:00:00Z",
+          "review_decision_changed": "2025-04-16T11:00:00Z",
+          "new_approvals": "2025-04-16T13:00:00Z"
+        }
+      },
+      "38": {
+        "number": 38,
+        "title": "添加数据导出功能",
+        "snapshot": {
+          "number": 38,
+          "title": "添加数据导出功能",
+          "author": "contributor",
+          "review_decision": "REVIEW_REQUIRED",
+          "ci_status": "FAILURE",
+          "approvers": [],
+          "reviewers_requested": ["reviewer3"],
+          "labels": ["feature"],
+          "created_at": "2025-04-16T09:00:00Z",
+          "updated_at": "2025-04-16T11:30:00Z",
+          "additions": 280,
+          "deletions": 45,
+          "changed_files": 3,
+          "is_draft": false
+        },
+        "first_seen": "2025-04-16T09:00:00Z",
+        "last_shown": "2025-04-16T14:30:00Z",
+        "times_shown": 5,
+        "last_changes": {}
+      },
+      "29": {
+        "number": 29,
+        "title": "重构 API 模块",
+        "snapshot": {
+          "number": 29,
+          "title": "重构 API 模块",
+          "author": "dev2",
+          "review_decision": "REVIEW_REQUIRED",
+          "ci_status": "SUCCESS",
+          "approvers": ["reviewer1"],
+          "reviewers_requested": ["reviewer2"],
+          "labels": ["refactor"],
+          "created_at": "2025-04-14T10:00:00Z",
+          "updated_at": "2025-04-14T16:00:00Z",
+          "additions": 520,
+          "deletions": 380,
+          "changed_files": 12,
+          "is_draft": false
+        },
+        "first_seen": "2025-04-14T10:00:00Z",
+        "last_shown": "2025-04-16T14:30:00Z",
+        "times_shown": 10,
+        "last_changes": {
+          "new_approvals": "2025-04-14T15:00:00Z"
+        }
+      }
+    }
+  },
+
+  "notification_history": {
+    "AgenticAIPlan/AgenticAISkills": {
+      "@user1": {
+        "last_notified": "2025-04-16T10:00:00Z",
+        "notification_count_today": 2
+      },
+      "@user2": {
+        "last_notified": "2025-04-16T14:00:00Z",
+        "notification_count_today": 1
+      }
+    }
+  }
+}

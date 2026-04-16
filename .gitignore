@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.venv/
+venv/
+ENV/
+env/
+
+# Claude Code
+.claude/settings.local.json
+
+# Skill state files
+.pr-reminder-state.json
+*.skill
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test outputs and workspace
+*-workspace/
+*.log
+.pytest_cache/
+
+# Temporary and evaluation files
+*.tmp
+*.temp
+/tmp/
+prs*.json
+changes*.json
+report*.md
+eval-*/
+*.json.bak
+
+# Reports generated during development
+pr-*-report.md
+pr-*-format.md
