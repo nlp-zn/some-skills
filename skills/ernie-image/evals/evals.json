@@ -1,0 +1,70 @@
+{
+  "skill_name": "ernie-image",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我用百度 ERNIE-Image-Turbo 出 4 张公众号横版封面图，主题是“AI 工作流提效”，左侧留中文标题区，整体科技感但不要太拥挤。",
+      "expected_output": "Skill should choose a horizontal size, generate multiple variants, and save usable image outputs with clear file paths.",
+      "files": [],
+      "expectations": [
+        "The run generates 4 outputs.",
+        "The run uses a wide output size suitable for article or cover usage.",
+        "The run preserves the left-side title whitespace requirement in the prompt or metadata."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "我想先快速预览几版，不用落盘，帮我用 ERNIE Image 出一张 1:1 的宠物插画，看看 URL 就行。",
+      "expected_output": "Skill should prefer response_format=url for quick preview and report the returned preview URL clearly.",
+      "files": [],
+      "expectations": [
+        "The run returns URL output instead of only local base64 files.",
+        "The run uses a square output size."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "我已经有 AI Studio Access Token。请帮我生成一个可复现的竖版社媒海报：极简银灰科技风、中心产品主体、下方预留中文 slogan 区域，并固定 seed。",
+      "expected_output": "Skill should use a vertical size, set a fixed seed, preserve repeatability details, and save the generated image plus metadata.",
+      "files": [],
+      "expectations": [
+        "The run uses a vertical poster-like size.",
+        "The run records a fixed seed in metadata.",
+        "The run saves at least one local image file."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "帮我做一个带中文海报字的 AI 技术专栏封面，要求左侧留大标题留白，右侧有机器人 IP，先快速给我 4 个 URL 版本挑方向。",
+      "expected_output": "Skill should prefer a cover-oriented wide output, use response_format=url, generate multiple variants, and preserve the title whitespace requirement in the prompt strategy.",
+      "files": [],
+      "expectations": [
+        "The run returns 4 URL variants.",
+        "The run uses a wide article-cover output size.",
+        "The prompt or metadata explicitly mentions Chinese title text and left-side whitespace."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "我想对比 2 个稳定版本：同一个未来城市夜景主题，但一个更电影感，一个更摄影感。请固定 seed，只变 style 或少量风格描述，方便我 A/B 看差异。",
+      "expected_output": "Skill should use a fixed seed, vary style in a controlled way, and explain how to compare the outputs without changing too many variables at once.",
+      "files": [],
+      "expectations": [
+        "The run keeps a fixed seed across variants.",
+        "The run produces two variants for A/B comparison.",
+        "The comparison changes style or a minimal prompt delta instead of a full prompt rewrite."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "来一张科技感海报。",
+      "expected_output": "Skill should not pass the minimal ask through unchanged. It should expand the request into a structured poster brief with subject, composition, whitespace, and title or slogan placement.",
+      "files": [],
+      "expectations": [
+        "The run expands the original minimal prompt into a more detailed production-ready prompt.",
+        "The expanded prompt mentions composition, whitespace, or a text area instead of only style adjectives.",
+        "The run chooses a poster-like or cover-like output size instead of leaving the delivery format ambiguous."
+      ]
+    }
+  ]
+}

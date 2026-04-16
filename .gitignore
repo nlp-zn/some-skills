@@ -26,6 +26,7 @@ MANIFEST
 htmlcov/
 .tox/
 .venv/
+.venv-*/
 venv/
 ENV/
 env/
@@ -54,6 +55,8 @@ env/
 *.tmp
 *.temp
 /tmp/
+.aistudio.env
+.aistudio.env.*
 prs*.json
 changes*.json
 report*.md
