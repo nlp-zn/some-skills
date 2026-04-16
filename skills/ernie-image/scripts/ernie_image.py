@@ -61,6 +61,13 @@ ARCHETYPE_CHOICES = (
 )
 SHORT_PROMPT_CHAR_LIMIT = 28
 SHORT_PROMPT_WORD_LIMIT = 6
+CHARACTER_HINTS = (
+    {
+        "keywords": ("机器猫", "哆啦a梦", "哆啦A梦", "doraemon"),
+        "hint_zh": "主讲角色明确设定为经典日漫里的机器猫形象，蓝白配色，圆圆的白脸，红鼻子，胡须线，脖子上有黄色铃铛，腹部有四次元口袋，短圆手脚，红色小尾巴，头顶轮廓光滑、没有耳朵凸起，没有真实猫毛感，整体像哆啦A梦式的儿童科普导师，不要画成普通蓝猫或猫玩偶",
+        "hint_en": "make the presenter a classic Japanese anime robotic cat: blue-and-white body, round white face, red nose, whisker lines, yellow bell collar, a four-dimensional pocket on the belly, short rounded limbs, a small red tail, a smooth round head with no ear protrusions, no realistic fur texture, and avoid making it look like a normal blue cat or cat plush",
+    },
+)
 
 
 def build_setup_instructions() -> str:
@@ -206,7 +213,7 @@ def infer_archetype(prompt: str) -> str:
 
     lowered = normalize_prompt(prompt).lower()
     keyword_groups = [
-        ("infographic", ("信息图", "流程图", "结构图", "知识图谱", "infographic", "diagram", "flowchart")),
+        ("infographic", ("示意图", "讲解图", "教学图", "科普图", "原理图", "信息图", "流程图", "结构图", "知识图谱", "infographic", "diagram", "flowchart")),
         ("poster", ("海报", "banner", "poster", "封面", "cover", "宣传图")),
         ("thumbnail", ("缩略图", "thumbnail", "video cover", "封面图")),
         ("engineering_markup", ("工程标注", "拆解图", "结构示意", "exploded view", "engineering markup")),
@@ -240,6 +247,15 @@ def infer_orientation(size: str) -> str:
 
 def uses_cjk_language(prompt: str) -> bool:
     return bool(re.search(r"[\u4e00-\u9fff]", prompt))
+
+
+def derive_character_hints(prompt: str, *, chinese: bool) -> list[str]:
+    lowered = normalize_prompt(prompt).lower()
+    hints: list[str] = []
+    for item in CHARACTER_HINTS:
+        if any(keyword.lower() in lowered for keyword in item["keywords"]):
+            hints.append(item["hint_zh"] if chinese else item["hint_en"])
+    return hints
 
 
 def build_archetype_clauses(archetype: str, orientation: str, size: str, *, chinese: bool) -> list[str]:
@@ -359,13 +375,17 @@ def build_prompt_plan(
     should_expand = short_or_vague or archetype != "image" or bool(style)
     orientation = infer_orientation(size)
     chinese = uses_cjk_language(original_prompt)
+    character_hints = derive_character_hints(original_prompt, chinese=chinese)
 
     expanded_prompt = original_prompt
     prompt_clauses = [original_prompt]
     if should_expand:
+        prompt_clauses.extend(character_hints)
         prompt_clauses.extend(build_archetype_clauses(archetype, orientation, size, chinese=chinese))
         if style:
             prompt_clauses.append(f"使用 {style} 风格" if chinese else f"use a {style} visual style")
+        if archetype == "infographic" and character_hints:
+            prompt_clauses.append("让这个角色担任讲解者，采用清晰的日漫卡通科普插画风，用箭头、标签和分区去解释关键知识点" if chinese else "make that character the explainer in a clean anime-style educational diagram, using arrows, labels, and sections to teach the key ideas")
         if archetype in {"poster", "thumbnail", "infographic"}:
             prompt_clauses.append("避免杂乱，保持版式有明确设计感，并让结果看起来可直接交付" if chinese else "avoid clutter, keep the layout deliberate, and make the result feel production-ready")
         joiner = "，" if chinese else ", "
