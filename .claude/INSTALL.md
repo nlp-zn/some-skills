@@ -4,26 +4,16 @@ This document explains how to install skills from this repository in Claude Code
 
 ## Quick Installation
 
-### Install All Skills
-
-To install all skills at once, run the installation script for each skill:
+Install individual skills from the repo root:
 
 ```bash
-# Install pr-reminder
-cd skills/pr-reminder
-./install.sh
+./install.sh pr-reminder
+./install.sh ernie-image
 ```
 
-### Install Individual Skills
+The root installer only lists directories that contain a `SKILL.md`, so local eval workspaces such as `ernie-image-workspace/` are ignored automatically.
 
-Each skill has its own `install.sh` script:
-
-```bash
-cd skills/<skill-name>
-./install.sh
-```
-
-This creates a symlink from the skill directory to `~/.claude/skills/`.
+This creates a symlink from `skills/<skill-name>/` to `~/.claude/skills/<skill-name>`.
 
 ## Manual Installation
 
@@ -59,15 +49,20 @@ Once installed, you can use the skill in Claude Code by simply describing what y
 请帮我生成今天的 PR 状态报告
 ```
 
+Or for ERNIE Image:
+
+```
+画一张科技感海报
+```
+
 Claude will automatically trigger the appropriate skill.
 
 ## Uninstallation
 
-To uninstall a skill, use the provided uninstall script:
+To uninstall a skill, use the root uninstall script:
 
 ```bash
-cd skills/<skill-name>
-./uninstall.sh
+./uninstall.sh <skill-name>
 ```
 
 Or manually remove the symlink:
@@ -86,18 +81,23 @@ rm ~/.claude/skills/<skill-name>
 
 ### Permission Errors
 
-If you get permission errors, the install script may not be executable:
+If you get permission errors, the repo install script may not be executable:
 
 ```bash
-chmod +x skills/<skill-name>/install.sh
+chmod +x install.sh uninstall.sh
 ```
 
-### State Files
+### Local State and Config
 
-Some skills (like pr-reminder) create state files in your working directory. These are normal and help with change detection across sessions.
+Some skills create local state or user-level config:
+
+- `pr-reminder` may write local state snapshots for change detection
+- `ernie-image` can use environment variables or a user-level config file for API access
+
+Keep generated outputs, screenshots, and benchmarks in a sibling `*-workspace/` directory instead of committing them into the skill itself.
 
 ## Next Steps
 
-- Read the skill's README for detailed usage instructions
-- Check QUICKSTART.md for a 5-minute setup guide
-- See CONTRIBUTING.md if you want to add new skills
+- Read the skill's `SKILL.md` for detailed usage instructions
+- Check the skill's `references/` or `evals/` folders if present
+- See `CONTRIBUTING.md` if you want to add new skills

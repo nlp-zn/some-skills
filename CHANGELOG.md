@@ -49,6 +49,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Smart filtering (hides PRs unchanged >48 hours)
 - Concurrent-safe temporary file handling
 
+#### ernie-image v1.0.0
+- Added ERNIE-Image / ERNIE-Image-Turbo skill
+- Added AI Studio auth onboarding via environment variable, CLI flag, env file, and user-level config
+- Added prompt playbook, presets, evals, and runtime stability improvements for serial image generation
+
+### Changed
+- Updated repo documentation for a multi-skill layout
+- Standardized guidance for eval workspaces, local config, and root-level installation
+
 ## [1.0.0] - 2025-04-16
 
 ### Added
