@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate group chat friendly PR status report.
+Generate a full open-PR leaderboard report for AgenticAISkills.
 """
 import argparse
 import json
@@ -10,310 +10,240 @@ from typing import Any, Dict, List
 
 
 def load_json(filepath: str) -> Any:
-    """Load JSON file."""
+    """Load JSON data from a file."""
     with open(filepath, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
+def parse_time(timestamp: str) -> datetime:
+    """Parse GitHub timestamps."""
+    return datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+
+
 def format_duration(timestamp: str) -> str:
     """Format timestamp as human-readable duration."""
-    dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    dt = parse_time(timestamp)
     now = datetime.now(dt.tzinfo)
     diff = now - dt
-
     hours = diff.total_seconds() / 3600
 
     if hours < 1:
         return f"{int(diff.total_seconds() / 60)}分钟前"
-    elif hours < 24:
-        return f"{int(hours)}小时前"
-    else:
-        days = int(hours / 24)
-        return f"{days}天前"
-
-
-def format_waiting_hours(created_at: str) -> str:
-    """Format waiting time since PR creation."""
-    dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
-    now = datetime.now(dt.tzinfo)
-    hours = (now - dt).total_seconds() / 3600
-
     if hours < 24:
-        return f"{int(hours)}小时"
-    else:
-        return f"{int(hours / 24)}天"
+        return f"{int(hours)}小时前"
+    return f"{int(hours / 24)}天前"
 
 
-def get_ci_emoji(ci_status: str) -> str:
-    """Get emoji for CI status."""
-    emojis = {
-        "SUCCESS": "✅",
-        "FAILURE": "❌",
-        "PENDING": "⏳",
-        "RUNNING": "🔄",
-        None: "⚪"
-    }
-    return emojis.get(ci_status, "❓")
-
-
-def format_pr_entry(
-    pr: Dict[str, Any],
-    category: str,
-    changes: Dict[str, Any] = None,
-    advantages: List[str] = None,
-    improvements: List[str] = None,
-    encouragement: str = None,
-    show_score: bool = True
-) -> str:
-    """Format a single PR entry."""
-
-    lines = []
-
-    # Header
-    emoji_map = {
-        "new": "✨",
-        "progress": "✅",
-        "unchanged": "📌",
-        "needs_attention": "⚠️",
-        "ready": "🎉"
-    }
-    emoji = emoji_map.get(category, "📦")
-
-    # Quality score display
-    score = pr.get("quality_score", 0)
-    score_emoji = ""
+def get_score_emoji(score: float) -> str:
+    """Map a numeric quality score to a badge."""
     if score >= 80:
-        score_emoji = "🏆"
-    elif score >= 60:
-        score_emoji = "⭐"
-    elif score >= 40:
-        score_emoji = "👍"
-    else:
-        score_emoji = "💪"
+        return "🏆"
+    if score >= 60:
+        return "⭐"
+    if score >= 40:
+        return "👍"
+    return "💪"
 
-    if show_score:
-        lines.append(f"{emoji} PR #{pr['number']}: {pr['title']} {score_emoji} {score:.0f}/100")
-    else:
-        lines.append(f"{emoji} PR #{pr['number']}: {pr['title']}")
 
-    # Basic info
-    author = pr["author"]["login"]
+def get_ci_summary(pr: Dict[str, Any]) -> str:
+    """Return a concise CI summary."""
+    ci_status = pr.get("ci_status")
+    mapping = {
+        "SUCCESS": "✅ 通过",
+        "FAILURE": "❌ 失败",
+        "PENDING": "⏳ 进行中",
+        None: "⚪ 未配置"
+    }
+    return mapping.get(ci_status, "❓ 未知")
 
-    # Status line (combines waiting + review status)
+
+def get_review_summary(pr: Dict[str, Any]) -> str:
+    """Return a concise review summary."""
+    review_decision = pr.get("reviewDecision")
+    latest_reviews = pr.get("latestReviews", [])
+    approvals = sum(1 for review in latest_reviews if review.get("state") == "APPROVED")
+    requested = len(pr.get("reviewRequests", []))
+
+    if review_decision == "CHANGES_REQUESTED":
+        return "请求修改"
+    if review_decision == "APPROVED":
+        return f"已批准 {max(approvals, 1)} 人"
+    if approvals > 0:
+        return f"已批准 {approvals} 人"
+    if requested > 0:
+        return f"已请求 {requested} 位 reviewer"
+    return "待分配 reviewer"
+
+
+def get_action_status(pr: Dict[str, Any]) -> str:
+    """Return the main workflow status for the PR."""
     ci_status = pr.get("ci_status")
     review_decision = pr.get("reviewDecision")
+    has_reviewers = bool(pr.get("reviewRequests")) or bool(pr.get("latestReviews"))
 
-    # Determine who needs to act
+    if pr.get("isDraft", False):
+        return "Draft，待作者完善"
     if ci_status == "FAILURE" or review_decision == "CHANGES_REQUESTED":
-        # Contributor needs to fix
-        lines.append(f"👤 @{author} | ⏳ 等待贡献者修改")
-    elif review_decision == "APPROVED" and ci_status == "SUCCESS":
-        # Admin needs to merge
-        lines.append(f"👤 @{author} | ⏳ 等待管理员合并")
-    else:
-        # Waiting for review
-        lines.append(f"👤 @{author} | ⏳ 等待审核中")
-
-    # Show skill-specific advantages and improvements (immediately after author)
-    pr_advantages = pr.get("advantages", [])
-    pr_improvements = pr.get("improvements", [])
-
-    if pr_advantages:
-        lines.append(f"✨ {pr_advantages[0]}")
-        if len(pr_advantages) > 1:
-            lines.append(f"✨ {pr_advantages[1]}")
-
-    if pr_improvements:
-        lines.append(f"🔧 {pr_improvements[0]}")
-        if len(pr_improvements) > 1:
-            lines.append(f"🔧 {pr_improvements[1]}")
-
-    # Highlight changes for progress category
-    if category == "progress" and changes:
-        if changes.get("ci_changed"):
-            lines.append(f"✅ CI 从失败变为通过 ✨")
-        if changes.get("new_approvals"):
-            lines.append(f"✅ 收到新 approval 🎉")
-
-    # Link
-    lines.append(f"🔗 {pr['url']}")
-
-    return "\n".join(lines)
+        return "等待贡献者修改"
+    if review_decision == "APPROVED" and ci_status == "SUCCESS":
+        return "等待管理员合并"
+    if not has_reviewers:
+        return "待分配 reviewer"
+    return "等待审核中"
 
 
-def format_section(title: str, prs: List[Dict[str, Any]], **kwargs) -> str:
-    """Format a section with multiple PRs."""
-    if not prs:
-        return ""
+def build_summary(prs: List[Dict[str, Any]]) -> Dict[str, int]:
+    """Aggregate high-level report counts."""
+    summary = {
+        "total_open": len(prs),
+        "awaiting_review": 0,
+        "needs_author": 0,
+        "ready_to_merge": 0,
+        "draft": 0,
+        "ci_success": 0,
+        "ci_pending": 0,
+        "ci_failure": 0,
+        "ci_unknown": 0,
+    }
 
-    separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    lines = [
-        separator,
-        f"{title}",
-        separator,
-        ""
-    ]
+    for pr in prs:
+        ci_status = pr.get("ci_status")
+        review_decision = pr.get("reviewDecision")
 
-    for i, pr in enumerate(prs):
-        lines.append(format_pr_entry(pr, **kwargs))
+        if pr.get("isDraft", False):
+            summary["draft"] += 1
+        elif ci_status == "FAILURE" or review_decision == "CHANGES_REQUESTED":
+            summary["needs_author"] += 1
+        elif review_decision == "APPROVED" and ci_status == "SUCCESS":
+            summary["ready_to_merge"] += 1
+        else:
+            summary["awaiting_review"] += 1
 
-        # Add separator between PRs (except last)
-        if i < len(prs) - 1:
-            lines.append("")
-            lines.append("─────────────────────────────")
-            lines.append("")
+        if ci_status == "SUCCESS":
+            summary["ci_success"] += 1
+        elif ci_status == "PENDING":
+            summary["ci_pending"] += 1
+        elif ci_status == "FAILURE":
+            summary["ci_failure"] += 1
+        else:
+            summary["ci_unknown"] += 1
 
-    lines.append("")  # Empty line after section
-
-    return "\n".join(lines)
+    return summary
 
 
-def format_statistics(summary: Dict[str, int]) -> str:
-    """Format statistics section."""
-    separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-    active_count = (
-        summary.get("new", 0) +
-        summary.get("progress", 0) +
-        summary.get("unchanged", 0) +
-        summary.get("needs_attention", 0) +
-        summary.get("ready", 0)
+def sort_prs(prs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Sort PRs by quality score, then by recency."""
+    return sorted(
+        prs,
+        key=lambda pr: (pr.get("quality_score", 0), pr.get("createdAt", "")),
+        reverse=True,
     )
 
+
+def format_pr_entry(pr: Dict[str, Any]) -> str:
+    """Format a single PR entry in the leaderboard."""
+    score = pr.get("quality_score", 0.0)
+    score_emoji = get_score_emoji(score)
+    additions = pr.get("additions", 0)
+    deletions = pr.get("deletions", 0)
+    changed_files = pr.get("changedFiles", 0)
+
     lines = [
-        separator,
-        "📊 今日统计",
-        separator,
-        f"• 总活跃 PR: {active_count} 个",
-        f"• 新增: {summary.get('new', 0)} | 有进展: {summary.get('progress', 0)} | 无变化: {summary.get('unchanged', 0)} | 待处理: {summary.get('needs_attention', 0)} | 就绪: {summary.get('ready', 0)}",
-        ""
+        f"PR #{pr['number']}: {pr['title']} {score_emoji} {score:.0f}/100",
+        f"👤 @{pr['author']['login']} | ⏱️ 创建 {format_duration(pr['createdAt'])} | 🧭 {get_action_status(pr)}",
+        f"📊 变更: +{additions}/-{deletions} | {changed_files} 个文件",
+        f"🔧 CI: {get_ci_summary(pr)} | 👥 审核: {get_review_summary(pr)}",
     ]
 
-    # Calculate average waiting time
-    # (Would need PR data to calculate this)
+    for advantage in pr.get("advantages", [])[:2]:
+        lines.append(f"✨ {advantage}")
 
-    # Encouraging closing
-    if active_count > 0:
-        lines.append("💪 团队给力！继续保持这个节奏 🚀")
+    for improvement in pr.get("improvements", [])[:2]:
+        lines.append(f"🔧 {improvement}")
+
+    lines.append(f"🔗 {pr['url']}")
+    return "\n".join(lines)
+
+
+def format_statistics(summary: Dict[str, int], shown: int) -> str:
+    """Format the top-level summary section."""
+    separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    total = summary["total_open"]
+    hidden = max(total - shown, 0)
+    lines = [
+        separator,
+        "📊 全量统计",
+        separator,
+        f"• 未合入 PR: {total} 个",
+        f"• 展示范围: 质量 Top {shown}" if total else "• 展示范围: 无可展示 PR",
+        f"• 等待审核: {summary['awaiting_review']} | 待作者处理: {summary['needs_author']} | 待合并: {summary['ready_to_merge']} | Draft: {summary['draft']}",
+        f"• CI 通过: {summary['ci_success']} | CI 进行中: {summary['ci_pending']} | CI 失败: {summary['ci_failure']} | 无 CI: {summary['ci_unknown']}",
+    ]
+
+    if hidden > 0:
+        lines.append(f"• 其余 {hidden} 个 PR 未展开，仍计入全量统计")
 
     return "\n".join(lines)
 
 
-def generate_report(
-    prs_json: str,
-    changes_json: str,
-    history_json: str = None
-) -> str:
-    """Generate complete PR status report."""
-
-    # Load data
+def generate_report(prs_json: str, top_n: int = 10) -> str:
+    """Generate the final Markdown report."""
     prs_data = load_json(prs_json)
-    changes_data = load_json(changes_json)
-
-    prs = {str(p["number"]): p for p in prs_data["prs"]}
-    categories = changes_data["categories"]
-    changes = changes_data["changes"]
-    summary = changes_data["summary"]
     repo = prs_data["repo"]
-
-    # Build report
+    prs = sort_prs(prs_data["prs"])
+    summary = build_summary(prs)
+    top_prs = prs[:top_n]
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
     lines = [
-        f"🔄 PR 状态日报 | {now} | {repo}",
+        f"🔄 PR 全量巡检 | {now} | {repo}",
         "",
-        ""
+        format_statistics(summary, len(top_prs)),
+        "",
+        separator,
+        f"🏆 质量 Top {len(top_prs)}",
+        separator,
+        "",
     ]
 
-    # Sections in priority order
-    section_order = [
-        ("new", "✨ 新增待审核"),
-        ("progress", "📌 待处理更新"),
-        ("unchanged", "⏸️ 暂无变化"),
-        ("needs_attention", "⚠️ 需要作者关注"),
-        ("ready", "✅ 已就绪待合并")
-    ]
-
-    for category_key, section_title in section_order:
-        pr_numbers = categories.get(category_key, [])
-
-        if not pr_numbers:
-            continue
-
-        # For progress category, split into "has progress" and "unchanged" subsections
-        if category_key == "progress":
-            separator = "━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            lines.append(separator)
-            lines.append(section_title)
-            lines.append(separator)
-            lines.append("")
-
-            # Add subsections
-            has_progress_count = len(pr_numbers)
-            lines.append(f"✅ 有进展 ({has_progress_count})")
-            lines.append("")
-
-            for pr_num in pr_numbers:
-                pr = prs[pr_num]
-                pr_changes = changes.get(pr_num, {})
-                lines.append(format_pr_entry(pr, category_key, pr_changes))
+    if not top_prs:
+        lines.append("当前没有未合入的 PR。")
+    else:
+        for index, pr in enumerate(top_prs, start=1):
+            lines.append(f"{index}. {format_pr_entry(pr)}")
+            if index < len(top_prs):
                 lines.append("")
                 lines.append("─────────────────────────────")
                 lines.append("")
 
-            continue
-
-        # For other categories, just list PRs
-        category_prs = [prs[num] for num in pr_numbers]
-
-        for pr_num in pr_numbers:
-            pr = prs[pr_num]
-            pr_changes = changes.get(pr_num, {})
-
-            # Analyze PR for encouragement
-            # (In real implementation, would call analyze_pr.analyze_pr_quality)
-            advantages = []
-            improvements = []
-            encouragement = "👍"  # Default
-
-            lines.append(format_pr_entry(
-                pr,
-                category_key,
-                pr_changes,
-                advantages,
-                improvements,
-                encouragement
-            ))
-            lines.append("")
-            lines.append("─────────────────────────────")
-            lines.append("")
-
-    # Add statistics
-    lines.append(format_statistics(summary))
+    if summary["total_open"] > 0:
+        lines.extend([
+            "",
+            "💪 以上按质量分排序，方便优先看最值得推进的 PR。"
+        ])
 
     return "\n".join(lines)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate PR status report")
+    parser = argparse.ArgumentParser(description="Generate a full PR leaderboard report")
     parser.add_argument("--prs", required=True, help="PRs JSON file (from fetch_prs.py)")
-    parser.add_argument("--changes", required=True, help="Changes JSON file (from compare_states.py)")
-    parser.add_argument("--history", help="Historical state file (for additional context)")
     parser.add_argument("--output", default="report.md", help="Output markdown file")
+    parser.add_argument("--top", type=int, default=10, help="Number of PRs to show in the leaderboard")
     parser.add_argument("--print", action="store_true", help="Print report to stdout")
 
     args = parser.parse_args()
 
-    # Generate report
-    report = generate_report(args.prs, args.changes, args.history)
+    report = generate_report(args.prs, args.top)
 
-    # Save report
     with open(args.output, "w", encoding="utf-8") as f:
         f.write(report)
 
     print(f"Report saved to {args.output}", file=sys.stderr)
 
     if args.print:
-        print("\n" + "="*50 + "\n")
+        print("\n" + "=" * 50 + "\n")
         print(report)
 
 

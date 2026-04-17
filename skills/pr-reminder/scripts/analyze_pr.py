@@ -9,6 +9,34 @@ from datetime import datetime
 from typing import Dict, List, Tuple, Any
 
 
+def calculate_days_old(created_at_str: str) -> int:
+    """Return the integer number of days since the PR was created."""
+    created_at = datetime.fromisoformat(created_at_str.replace("Z", "+00:00"))
+    return (datetime.now(created_at.tzinfo) - created_at).days
+
+
+def should_suggest_request_reviewer(
+    pr: Dict[str, Any],
+    days_old: int,
+    latest_reviews: List[Dict[str, Any]]
+) -> bool:
+    """
+    Only suggest nudging for reviewers when the PR has actually sat idle.
+
+    Fresh PRs that are already "waiting for review" should not immediately get a
+    contradictory suggestion to request reviewers again.
+    """
+    if pr.get("reviewDecision") not in (None, "REVIEW_REQUIRED"):
+        return False
+    if pr.get("ci_status") == "FAILURE":
+        return False
+    if pr.get("reviewRequests"):
+        return False
+    if latest_reviews:
+        return False
+    return days_old >= 2
+
+
 def calculate_pr_score(pr: Dict[str, Any]) -> float:
     """
     Calculate PR quality score (0-100).
@@ -35,9 +63,8 @@ def calculate_pr_score(pr: Dict[str, Any]) -> float:
     ci_status = pr.get("ci_status")
     latest_reviews = pr.get("latestReviews", [])
     labels = [l["name"] for l in pr.get("labels", [])]
-    created_at = datetime.fromisoformat(pr["createdAt"].replace("Z", "+00:00"))
     has_description = bool(pr.get("body", "").strip())
-    days_old = (datetime.now(created_at.tzinfo) - created_at).days
+    days_old = calculate_days_old(pr["createdAt"])
 
     # CI status (30 points)
     if ci_status == "SUCCESS":
@@ -186,12 +213,7 @@ def generate_skill_improvements(pr: Dict[str, Any], skill_info: Dict[str, str]) 
     changed_files = pr.get("changedFiles", 0)
 
     # Calculate age with proper timezone handling
-    created_at = datetime.fromisoformat(pr["createdAt"].replace("Z", "+00:00"))
-    if created_at.tzinfo is None:
-        created_at = created_at.replace(tzinfo=None)
-        days_old = (datetime.now() - created_at).days
-    else:
-        days_old = (datetime.now(created_at.tzinfo) - created_at).days
+    days_old = calculate_days_old(pr["createdAt"])
 
     # Priority 1: CI failures (blocks user usage)
     if ci_status == "FAILURE":
@@ -215,8 +237,9 @@ def generate_skill_improvements(pr: Dict[str, Any], skill_info: Dict[str, str]) 
         improvements.append(f"等待 {days_old} 天，需跟进推进")
 
     # Priority 6: Missing reviewers
-    if not pr.get("reviewRequests") and review_decision == "REVIEW_REQUIRED":
-        improvements.append("建议请求 reviewer 加快审核")
+    latest_reviews = pr.get("latestReviews", [])
+    if should_suggest_request_reviewer(pr, days_old, latest_reviews):
+        improvements.append("建议先分配 reviewer")
 
     return improvements[:2]  # Max 2 improvements
 
@@ -241,9 +264,8 @@ def analyze_pr_quality(pr: Dict[str, Any]) -> Tuple[List[str], List[str]]:
     review_decision = pr.get("reviewDecision")
     latest_reviews = pr.get("latestReviews", [])
     labels = [l["name"] for l in pr.get("labels", [])]
-    created_at = datetime.fromisoformat(pr["createdAt"].replace("Z", "+00:00"))
     has_description = bool(pr.get("body", "").strip())
-    reviewers_requested = pr.get("reviewRequests", [])
+    days_open = calculate_days_old(pr["createdAt"])
 
     # ===== Check advantages =====
 
@@ -296,7 +318,6 @@ def analyze_pr_quality(pr: Dict[str, Any]) -> Tuple[List[str], List[str]]:
         improvements.append("建议拆分成多个小 PR，便于审查")
 
     # Long time open
-    days_open = (datetime.now(created_at.tzinfo) - created_at).days
     if days_open > 7:
         improvements.append(f"PR 已开放 {days_open} 天，考虑是否仍需要")
 
@@ -305,8 +326,8 @@ def analyze_pr_quality(pr: Dict[str, Any]) -> Tuple[List[str], List[str]]:
         improvements.append("建议补充 PR 描述说明变更原因")
 
     # No reviewers requested
-    if len(reviewers_requested) == 0 and review_decision not in ("APPROVED", "CHANGES_REQUESTED"):
-        improvements.append("建议主动请求 reviewer")
+    if should_suggest_request_reviewer(pr, days_open, latest_reviews):
+        improvements.append("建议先分配 reviewer")
 
     # Large PR
     if additions > 500:
