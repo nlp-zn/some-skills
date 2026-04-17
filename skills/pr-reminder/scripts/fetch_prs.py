@@ -9,6 +9,8 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, List
 
+DEFAULT_REPO = "AgenticAIPlan/AgenticAISkills"
+
 # Import score calculation and analysis functions
 sys.path.insert(0, __file__.replace("fetch_prs.py", ""))
 try:
@@ -47,7 +49,7 @@ def run_gh_command(args: List[str]) -> Dict[str, Any]:
 
 
 def fetch_prs(
-    repo: str = None,
+    repo: str = DEFAULT_REPO,
     author: str = None,
     state: str = "open",
     limit: int = 100,
@@ -57,7 +59,7 @@ def fetch_prs(
     Fetch PRs from GitHub.
 
     Args:
-        repo: Repository in format "owner/repo". If None, use current repo.
+        repo: Repository in format "owner/repo".
         author: Filter by author (e.g., "@me" or username)
         state: PR state (open, closed, all)
         limit: Maximum number of PRs to fetch
@@ -121,31 +123,9 @@ def extract_ci_status(pr: Dict[str, Any]) -> str:
     return "SUCCESS"
 
 
-def get_current_repo() -> str:
-    """Get current repository from git remote."""
-    try:
-        result = subprocess.run(
-            ["git", "remote", "get-url", "origin"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        url = result.stdout.strip()
-        # Convert git@github.com:owner/repo.git to owner/repo
-        if url.startswith("git@github.com:"):
-            return url[len("git@github.com:"):].replace(".git", "")
-        # Convert https://github.com/owner/repo.git to owner/repo
-        if url.startswith("https://github.com/"):
-            return url[len("https://github.com/"):].replace(".git", "")
-        return url
-    except subprocess.CalledProcessError:
-        print("Warning: Could not detect repository, using current directory", file=sys.stderr)
-        return "unknown/repo"
-
-
 def main():
     parser = argparse.ArgumentParser(description="Fetch PR data from GitHub")
-    parser.add_argument("--repo", help="Repository (owner/repo). Auto-detected if not specified.")
+    parser.add_argument("--repo", default=DEFAULT_REPO, help=f"Repository to inspect. Defaults to {DEFAULT_REPO}.")
     parser.add_argument("--author", help="Filter by author (@me or username)")
     parser.add_argument("--state", default="open", choices=["open", "closed", "all"], help="PR state")
     parser.add_argument("--limit", type=int, default=100, help="Maximum number of PRs")
@@ -155,10 +135,7 @@ def main():
 
     args = parser.parse_args()
 
-    # Auto-detect repo if not specified
-    repo = args.repo
-    if not repo:
-        repo = get_current_repo()
+    repo = args.repo or DEFAULT_REPO
 
     # Fetch PRs
     prs = fetch_prs(
