@@ -1,0 +1,66 @@
+[
+  {
+    "query": "I need a better system prompt for my local coding agent. Right now it overthinks, gives huge explanations, and waits forever before touching the code. Can you rewrite the prompt so it acts faster but still flags real risks?",
+    "should_trigger": true
+  },
+  {
+    "query": "帮我优化一个 Codex 用的 prompt。我想让它在改代码前先快速读上下文，但不要过度搜索，也不要每次都输出很长的解释。",
+    "should_trigger": true
+  },
+  {
+    "query": "Turn this workflow into a reusable skill prompt: when someone asks for AI demand research, search Reddit, GitHub issues, and X, separate evidence from inference, and end with 3 product ideas.",
+    "should_trigger": true
+  },
+  {
+    "query": "I already have an AGENTS.md but it's messy and repetitive. Rewrite it into a cleaner set of instructions for a repo coding assistant, keep the good constraints, and remove contradictions.",
+    "should_trigger": true
+  },
+  {
+    "query": "Can you write me a Claude-friendly prompt with XML tags for repo analysis? I want clear sections for context, instructions, and output format.",
+    "should_trigger": true
+  },
+  {
+    "query": "把这个很口语化的提示词改成可复用的 system prompt，目标是让 agent 做长任务时更稳、更会自检，而且别动不动就停下来问我。",
+    "should_trigger": true
+  },
+  {
+    "query": "I want a prompt template my team can reuse when asking an LLM to review PRs. It should focus on regressions, risks, and missing tests instead of writing style.",
+    "should_trigger": true
+  },
+  {
+    "query": "Please debug this prompt, not the code. The current one keeps making our research agent cite weak sources and ignore contradictory evidence. I need a revised prompt plus a few test cases.",
+    "should_trigger": true
+  },
+  {
+    "query": "What's the latest official OpenAI guidance on prompt engineering for GPT-5.4 and Codex? Please cite the docs.",
+    "should_trigger": false
+  },
+  {
+    "query": "My shell prompt on zsh is broken after I changed my theme. Can you help me fix the prompt and PATH setup?",
+    "should_trigger": false
+  },
+  {
+    "query": "Write the final marketing copy for our landing page hero. I don't need a meta-prompt, I need the actual copy.",
+    "should_trigger": false
+  },
+  {
+    "query": "Can you generate an image prompt for Midjourney of a cinematic rainy cyberpunk alley with neon reflections?",
+    "should_trigger": false
+  },
+  {
+    "query": "Please review this Python script that builds prompts for our app. There is probably a bug in the variable interpolation logic.",
+    "should_trigger": false
+  },
+  {
+    "query": "I want product opportunities from user complaints about invoice software. Do the research and give me the findings directly; don't turn it into a reusable prompt.",
+    "should_trigger": false
+  },
+  {
+    "query": "Can you summarize this prompt engineering article I pasted below and tell me the 5 biggest takeaways?",
+    "should_trigger": false
+  },
+  {
+    "query": "Make my customer-support bot more reliable. If you think prompt changes help, propose them, but also inspect whether the real issue is tool latency or missing retrieval context.",
+    "should_trigger": false
+  }
+]

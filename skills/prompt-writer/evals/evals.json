@@ -1,0 +1,41 @@
+{
+  "skill_name": "prompt-writer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a local coding agent that keeps overexplaining and waits too long before taking the first concrete action. Write me a better system prompt that makes it act faster, stay concise, and still surface risks when they matter.",
+      "expected_output": "The skill should produce a reusable agent prompt with explicit action bias, concise update behavior, escalation rules, and a small test set.",
+      "files": [],
+      "expectations": [
+        "The output includes one paste-ready system prompt.",
+        "The prompt contains explicit guidance about fast first action or time-to-first-action.",
+        "The prompt includes a rule for concise updates or constrained verbosity.",
+        "The output also includes realistic test prompts."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Turn this rough workflow into a reusable skill prompt: when someone asks for demand research, search real user feedback across Reddit, GitHub, and X, summarize repeated pain points, separate evidence from inference, and end with 3 product opportunities.",
+      "expected_output": "The skill should convert the workflow into a reusable skill or system prompt with triggers, workflow steps, evidence requirements, and output structure.",
+      "files": [],
+      "expectations": [
+        "The output identifies that this is a reusable prompt rather than a one-off task prompt.",
+        "The final prompt includes trigger conditions or usage context.",
+        "The prompt separates sourced findings from inferred opportunities.",
+        "The prompt defines a concrete output structure."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Rewrite this Claude prompt so it is easier to follow: 'Analyze this repo deeply, maybe use tools, probably search the web if needed, and tell me what to do.' The new version should use Claude-friendly structure and reduce ambiguity.",
+      "expected_output": "The skill should produce a Claude-oriented prompt with clearer instructions, tagged structure if helpful, explicit tool expectations, and clearer output requirements.",
+      "files": [],
+      "expectations": [
+        "The output includes one rewritten prompt tailored for Claude.",
+        "The rewritten prompt is more explicit about tools, scope, and deliverable.",
+        "The output uses structured sections or XML-style tags.",
+        "The output includes a short explanation of the main changes."
+      ]
+    }
+  ]
+}
